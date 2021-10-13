@@ -6,6 +6,10 @@ export interface IApiItem {
   id: string
 }
 
+import { observable } from 'mobx'
+import { IApiItem } from '~libs/models'
+import { isArray, merge } from '~libs/utils'
+
 export class ItemPoolStore {
   @observable
   itemPool: { [key: string]: IApiItem[] } = {}
@@ -22,8 +26,8 @@ export class ItemPoolStore {
    *
    * All items returned will be an observable mobx object
    */
-  getArrayFromPool = <T extends IApiItem>(items: T[]) => {
-    return items.map((item) => this.getFromPool(item)) as T[]
+  storeArrayToPool = <T extends IApiItem>(items: T[]) => {
+    return items.map((item) => this.storeToPool(item)) as T[]
   }
 
   /**
@@ -33,16 +37,20 @@ export class ItemPoolStore {
    *
    * The item returned will be an observable mobx object
    */
-  getFromPool = <T extends IApiItem>(item: T) => {
+  storeToPool = <T extends IApiItem>(item: T | T[]) => {
+    if (isArray(item)) {
+      return this.storeArrayToPool(item)
+    }
+
     if (!item.id || !item.__name) {
       return item
     }
 
     Object.keys(item).forEach((key) => {
       if (isArray(item[key])) {
-        item[key] = this.getArrayFromPool(item[key])
+        item[key] = this.storeArrayToPool(item[key])
       } else if (typeof item[key] === 'object') {
-        item[key] = this.getFromPool(item[key])
+        item[key] = this.storeToPool(item[key])
       }
     })
 
