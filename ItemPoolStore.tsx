@@ -1,6 +1,10 @@
 import { observable } from 'mobx'
-import { IApiItem } from '~libs/models'
 import { isArray, merge } from '~libs/utils'
+
+export interface IApiItem {
+  __name: string
+  id: string
+}
 
 export class ItemPoolStore {
   @observable
